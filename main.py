@@ -129,6 +129,20 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
         await message.reply(f"Your Majesty, what would you like me to do? 👀")
         return
     
+    # Fetch conversation history (last 10 messages for context)
+    conversation_history = []
+    try:
+        async for hist_msg in message.channel.history(limit=10, before=message):
+            # Format: "Author: message content"
+            author_name = hist_msg.author.name if hist_msg.author.name else "Unknown"
+            msg_content = hist_msg.content[:200]  # Truncate long messages
+            conversation_history.append(f"{author_name}: {msg_content}")
+        
+        # Reverse so oldest is first
+        conversation_history.reverse()
+    except Exception as e:
+        print(f"[{courtier.name}] Could not fetch history: {e}")
+    
     # Build context based on who's speaking
     context = {}
     if is_from_courtier:
@@ -137,6 +151,10 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
         context["speaker"] = sender_name
         context["conversation_type"] = "courtier_collaboration"
         clean_message = f"[{sender_name} is asking you]: {clean_message}"
+    
+    # Add conversation history to context
+    if conversation_history:
+        context["conversation_history"] = "\n".join(conversation_history)
     
     # Show typing indicator
     async with message.channel.typing():

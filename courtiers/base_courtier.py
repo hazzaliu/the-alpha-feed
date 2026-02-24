@@ -52,11 +52,18 @@ class BaseCourtier:
         context_str = ""
         if context:
             if context.get("conversation_history"):
-                context_str += "\n\nRecent conversation:\n" + "\n".join(context["conversation_history"][-5:])
+                # Handle both string and list formats
+                history = context["conversation_history"]
+                if isinstance(history, str):
+                    context_str += f"\n\n[RECENT CONVERSATION ABOVE]:\n{history}\n[END OF CONVERSATION HISTORY]\n"
+                elif isinstance(history, list):
+                    context_str += "\n\n[RECENT CONVERSATION ABOVE]:\n" + "\n".join(history[-5:]) + "\n[END OF CONVERSATION HISTORY]\n"
             if context.get("project_context"):
                 context_str += f"\n\nProject context: {context['project_context']}"
+            if context.get("web_search_results"):
+                context_str += f"\n\nWeb search results: {context['web_search_results']}"
         
-        user_message = f"{emperor_message}{context_str}"
+        user_message = f"{context_str}\n\n[CURRENT MESSAGE]: {emperor_message}"
         
         client = _get_openai_client()
         response = client.chat.completions.create(
