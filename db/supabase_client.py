@@ -7,10 +7,16 @@ _client: Client | None = None
 
 
 def get_client() -> Client:
+    """Legacy function name - get Supabase client."""
     global _client
     if _client is None:
         _client = create_client(SUPABASE_URL, SUPABASE_KEY)
     return _client
+
+
+def get_supabase_client() -> Client:
+    """Get Supabase client (alias for get_client)."""
+    return get_client()
 
 
 def url_hash(url: str) -> str:
