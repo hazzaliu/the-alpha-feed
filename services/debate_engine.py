@@ -49,7 +49,7 @@ class DebateEngine:
         }
         
         # Opening statement from Vizier if present
-        vizier = next((c for c in courtiers if c.name == "Lady Vizier"), None)
+        vizier = next((c for c in courtiers if c.name == "Lady Philippa"), None)
         if vizier:
             opening = await vizier.respond(
                 f"Your Majesty has summoned the court to discuss: {topic}\n\nLet us begin the deliberation.",
@@ -115,7 +115,7 @@ class DebateEngine:
         
         for courtier in debate["courtiers"]:
             # Skip Vizier in regular rounds (they moderate, not debate)
-            if courtier.name == "Lady Vizier":
+            if courtier.name == "Lady Philippa":
                 continue
             
             response = await self.courtier_speaks(thread, courtier)
@@ -136,7 +136,7 @@ class DebateEngine:
         debate = self.active_debates[thread.id]
         
         # Find Vizier
-        vizier = next((c for c in debate["courtiers"] if c.name == "Lady Vizier"), None)
+        vizier = next((c for c in debate["courtiers"] if c.name == "Lady Philippa"), None)
         if not vizier:
             # If no Vizier, just summarize
             return "Debate concluded. Please review the courtiers' perspectives above."

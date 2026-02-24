@@ -31,37 +31,37 @@ try:
     print("✓ courtiers.base_courtier")
     from courtiers.base_courtier import BaseCourtier
     
-    print("✓ courtiers.lord_architect")
-    from courtiers.lord_architect import LordArchitect
+    print("✓ courtiers.lord_sebastian")
+    from courtiers.lord_sebastian import LordSebastian
     
-    print("✓ courtiers.lady_treasurer")
-    from courtiers.lady_treasurer import LadyTreasurer
+    print("✓ courtiers.lady_beatrice")
+    from courtiers.lady_beatrice import LadyBeatrice
     
-    print("✓ courtiers.lord_herald")
-    from courtiers.lord_herald import LordHerald
+    print("✓ courtiers.lord_edmund")
+    from courtiers.lord_edmund import LordEdmund
     
-    print("✓ courtiers.lady_envoy")
-    from courtiers.lady_envoy import LadyEnvoy
+    print("✓ courtiers.lady_arabella")
+    from courtiers.lady_arabella import LadyArabella
     
-    print("✓ courtiers.lady_vizier")
-    from courtiers.lady_vizier import LadyVizier
+    print("✓ courtiers.lady_philippa")
+    from courtiers.lady_philippa import LadyPhilippa
     
-    print("✓ courtiers.lord_sage")
-    from courtiers.lord_sage import LordSage
+    print("✓ courtiers.lord_alistair")
+    from courtiers.lord_alistair import LordAlistair
     
-    print("✓ courtiers.lady_jester")
-    from courtiers.lady_jester import LadyJester
+    print("✓ courtiers.lady_genevieve")
+    from courtiers.lady_genevieve import LadyGenevieve
     
     # Test instantiation
     print("\nTesting courtier instantiation...")
     courtiers = {
-        "lord_architect": LordArchitect(),
-        "lady_treasurer": LadyTreasurer(),
-        "lord_herald": LordHerald(),
-        "lady_envoy": LadyEnvoy(),
-        "lady_vizier": LadyVizier(),
-        "lord_sage": LordSage(),
-        "lady_jester": LadyJester(),
+        "lord_sebastian": LordSebastian(),
+        "lady_beatrice": LadyBeatrice(),
+        "lord_edmund": LordEdmund(),
+        "lady_arabella": LadyArabella(),
+        "lady_philippa": LadyPhilippa(),
+        "lord_alistair": LordAlistair(),
+        "lady_genevieve": LadyGenevieve(),
     }
     
     for key, courtier in courtiers.items():

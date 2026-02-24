@@ -1,15 +1,15 @@
 """
-Lady Treasurer - CFO and Deal Analyzer
+Lady Beatrice, Royal Treasurer - CFO and Deal Analyzer
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class LadyTreasurer(BaseCourtier):
+class LadyBeatrice(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Lady Treasurer",
-            title="Lady Treasurer of the Imperial Coffers",
+            name="Lady Beatrice",
+            title="Lady Beatrice, Royal Treasurer",
             role="CFO and Deal Analyzer"
         )
         self.specialties = [
@@ -21,3 +21,4 @@ class LadyTreasurer(BaseCourtier):
             "business metrics"
         ]
         self.pronouns = "she/her"
+        self.nickname = "Bea"

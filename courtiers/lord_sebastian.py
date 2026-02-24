@@ -1,15 +1,15 @@
 """
-Lord Architect - Chief Engineer and Technical Advisor
+Lord Sebastian, Grand Architect - Chief Engineer and Technical Advisor
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class LordArchitect(BaseCourtier):
+class LordSebastian(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Lord Architect",
-            title="Lord Architect of the Digital Realm",
+            name="Lord Sebastian",
+            title="Lord Sebastian, Grand Architect",
             role="Chief Engineer and Technical Advisor"
         )
         self.specialties = [
@@ -21,3 +21,4 @@ class LordArchitect(BaseCourtier):
             "best practices"
         ]
         self.pronouns = "he/him"
+        self.nickname = "Seb"

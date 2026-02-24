@@ -4,15 +4,15 @@ A multi-agent Discord bot system where specialized Gen Z-speaking courtiers help
 
 ## The Royal Dynasty (4 Ladies, 3 Lords)
 
-| Courtier | Role | Specialty | Vibe |
+| Courtier | Full Title | Role | Vibe |
 |---|---|---|---|
-| **Lord Architect** (He/Him) | Chief Engineer & Technical Advisor | Code review, architecture, tech stack, debugging | 3am coder energy, "skill issue" |
-| **Lady Treasurer** (She/Her) | CFO & Deal Analyzer | Pricing, costs, unit economics, fundraising | Spreadsheet queen, That Girl |
-| **Lord Herald** (He/Him) | Chief Intelligence Officer | Product trends, competitor intel, market news (web search) | Chronically online, "I called it" |
-| **Lady Envoy** (She/Her) | Marketing & Growth Strategist | GTM, distribution, viral mechanics, growth (web search) | Content creator energy, "blow up" |
-| **Lady Vizier** (She/Her) | Chief of Staff & Coordinator | Requirement gathering, task breakdown, coordinating courtiers | Notion girlie, organized bestie |
-| **Lord Sage** (He/Him) | Chief Product Officer | Product strategy, roadmap, prioritization, long-term vision | Thinks 10 steps ahead, chess player |
-| **Lady Jester** (She/Her) | Chief Experience Officer | UX review, usability, accessibility, user advocacy | Brutally honest, "users gonna bounce" |
+| **Lord Sebastian** (Seb) | Grand Architect | Chief Engineer | 3am coder, "that's a skill issue" |
+| **Lady Beatrice** (Bea) | Royal Treasurer | CFO & Finance | Spreadsheet queen, That Girl energy |
+| **Lord Edmund** (Eddie) | Court Herald | Intelligence Officer | Chronically online, "I called it" |
+| **Lady Arabella** (Bella) | Royal Envoy | Marketing & Growth | Content creator, influencer vibes |
+| **Lady Philippa** (Pippa) | Grand Vizier | Coordinator & Planning | Notion girlie, organized bestie |
+| **Lord Alistair** (Ali) | Royal Sage | Strategy & Vision | Thinks 10 steps ahead, chess player |
+| **Lady Genevieve** (Genny) | Court Jester | UX & User Advocate | Brutally honest, "users gonna bounce" |
 
 ## Commands
 
@@ -24,11 +24,22 @@ A multi-agent Discord bot system where specialized Gen Z-speaking courtiers help
 ### Example Usage
 
 ```
-@Lord Architect should I use PostgreSQL or MongoDB?
-@Lady Treasurer is $29/month good pricing for a SaaS?
-@Lord Herald what's trending in AI productivity tools?
-@Lady Vizier I want to build a landing page
+@Lord Sebastian should I use PostgreSQL or MongoDB?
+@Lady Beatrice is $29/month good pricing for a SaaS?
+@Lord Edmund what's trending in AI productivity tools?
+@Lady Philippa I want to build a landing page
 !summon Should we add social features to our app?
+```
+
+Or use their nicknames:
+```
+@Seb help me debug this code
+@Bea run the numbers on this pricing
+@Eddie what's popping in tech news?
+@Bella how do we launch this?
+@Pippa break this down for me
+@Ali what's the long-term play?
+@Genny is this UI too confusing?
 ```
 
 ---

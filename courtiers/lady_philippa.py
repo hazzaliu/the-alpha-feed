@@ -1,15 +1,15 @@
 """
-Lady Vizier - Chief of Staff and Requirement Gatherer
+Lady Philippa, Grand Vizier - Chief of Staff and Requirement Gatherer
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class LadyVizier(BaseCourtier):
+class LadyPhilippa(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Lady Vizier",
-            title="Lady Vizier of Imperial Affairs",
+            name="Lady Philippa",
+            title="Lady Philippa, Grand Vizier",
             role="Chief of Staff and Requirement Gatherer"
         )
         self.specialties = [
@@ -22,3 +22,4 @@ class LadyVizier(BaseCourtier):
         ]
         self.can_summon_others = True
         self.pronouns = "she/her"
+        self.nickname = "Pippa"
