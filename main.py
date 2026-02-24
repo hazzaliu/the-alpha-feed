@@ -192,9 +192,12 @@ def create_bot_for_courtier(courtier_key: str) -> commands.Bot:
     
     @bot.event
     async def on_ready():
-        print(f"[{courtier.name}] Online and ready to serve His Imperial Majesty")
+        print(f"✓ [{courtier.name}] Online and ready to serve His Imperial Majesty")
+        print(f"  └─ Username: {bot.user.name}")
+        print(f"  └─ ID: {bot.user.id}")
         if EMPEROR_USER_ID:
-            print(f"[{courtier.name}] Serving Emperor ID: {EMPEROR_USER_ID}")
+            print(f"  └─ Serving Emperor ID: {EMPEROR_USER_ID}")
+        print()
     
     @bot.event
     async def on_message(message: discord.Message):
@@ -255,13 +258,29 @@ def create_bot_for_courtier(courtier_key: str) -> commands.Bot:
 
 async def run_all_bots():
     """Run all 7 courtier bots simultaneously."""
+    print("[main] Checking environment variables...")
+    
+    # Validate all tokens are present
+    missing_tokens = []
+    for courtier_key, token in courtier_tokens.items():
+        if not token:
+            missing_tokens.append(courtier_key)
+            print(f"[ERROR] Missing token for {courtier_key}")
+    
+    if missing_tokens:
+        print(f"\n[FATAL] Cannot start. Missing {len(missing_tokens)} tokens:")
+        for key in missing_tokens:
+            print(f"  - {key.upper()}_TOKEN")
+        print("\nAdd these to Railway → Variables tab")
+        return
+    
+    print(f"[main] All {len(courtier_tokens)} tokens found ✓")
+    print(f"[main] Starting {len(courtier_tokens)} courtier bots...")
+    print(f"[main] The Emperor's Court is assembling...\n")
+    
     tasks = []
     
     for courtier_key, token in courtier_tokens.items():
-        if not token:
-            print(f"[ERROR] Missing token for {courtier_key}")
-            continue
-        
         bot_instance = create_bot_for_courtier(courtier_key)
         bots[courtier_key] = bot_instance
         
@@ -269,11 +288,12 @@ async def run_all_bots():
         task = asyncio.create_task(bot_instance.start(token))
         tasks.append(task)
     
-    print(f"[main] Starting {len(tasks)} courtier bots...")
-    print(f"[main] The Emperor's Court is assembling...")
-    
     # Run all bots concurrently
-    await asyncio.gather(*tasks)
+    try:
+        await asyncio.gather(*tasks)
+    except Exception as e:
+        print(f"\n[FATAL] Error running bots: {e}")
+        raise
 
 
 if __name__ == "__main__":
