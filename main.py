@@ -146,26 +146,24 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
                 # Determine if we should search
                 search_triggers = ["what's", "whats", "trending", "happening", "latest", "news", 
                                  "competitor", "doing", "is ", "are ", "how are", "search"]
-                should_search = any(trigger in emperor_message.lower() for trigger in search_triggers)
+                should_search = any(trigger in clean_message.lower() for trigger in search_triggers)
                 
                 if should_search:
                     # Perform web search
-                    search_results = await web_search(emperor_message, max_results=5)
+                    search_results = await web_search(clean_message, max_results=5)
                     search_context = format_search_results(search_results)
                     
                     # Add search results to context
-                    context = {
-                        "web_search_results": search_context,
-                        "search_query": emperor_message
-                    }
+                    context["web_search_results"] = search_context
+                    context["search_query"] = clean_message
                     response = await courtier.respond(
-                        f"Based on current web search results, {emperor_message}",
+                        f"Based on current web search results, {clean_message}",
                         context
                     )
                 else:
-                    response = await courtier.respond(emperor_message)
+                    response = await courtier.respond(clean_message, context)
             else:
-                response = await courtier.respond(emperor_message)
+                response = await courtier.respond(clean_message, context)
             
             # Send response (no title prefix since bot username already shows it)
             await message.reply(response)
@@ -174,7 +172,7 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
             try:
                 conv_id = await save_conversation(
                     emperor_message_id=str(message.id),
-                    context={"original_message": emperor_message}
+                    context={"original_message": clean_message}
                 )
                 await save_courtier_response(
                     conversation_id=conv_id,
