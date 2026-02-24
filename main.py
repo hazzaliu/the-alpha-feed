@@ -112,19 +112,31 @@ def detect_courtier_mention(message: discord.Message) -> Optional[str]:
 
 
 async def handle_courtier_response(message: discord.Message, courtier_key: str, bot_instance: commands.Bot):
-    """Handle a courtier responding to the Emperor's message."""
+    """Handle a courtier responding to a message (from Emperor or another courtier)."""
     courtier = courtiers[courtier_key]
     
-    # Extract the Emperor's actual message (remove @mentions)
-    emperor_message = message.content
-    # Remove all @mentions from the message
-    for mention in message.mentions:
-        emperor_message = emperor_message.replace(f"<@{mention.id}>", "")
-    emperor_message = emperor_message.strip()
+    # Determine who's speaking
+    is_from_emperor = is_emperor(message.author)
+    is_from_courtier = message.author.bot and not is_from_emperor
     
-    if not emperor_message:
+    # Extract the actual message (remove @mentions)
+    clean_message = message.content
+    for mention in message.mentions:
+        clean_message = clean_message.replace(f"<@{mention.id}>", "")
+    clean_message = clean_message.strip()
+    
+    if not clean_message:
         await message.reply(f"Your Majesty, what would you like me to do? 👀")
         return
+    
+    # Build context based on who's speaking
+    context = {}
+    if is_from_courtier:
+        # Another courtier is speaking - this is a collaboration
+        sender_name = message.author.name
+        context["speaker"] = sender_name
+        context["conversation_type"] = "courtier_collaboration"
+        clean_message = f"[{sender_name} is asking you]: {clean_message}"
     
     # Show typing indicator
     async with message.channel.typing():
@@ -206,18 +218,22 @@ def create_bot_for_courtier(courtier_key: str) -> commands.Bot:
         if message.author == bot.user:
             return
         
-        # Ignore other bots
-        if message.author.bot:
-            return
-        
-        # Check if Emperor (in main channels)
-        if not isinstance(message.channel, discord.Thread):
+        # In threads: Allow bots to talk to each other
+        if isinstance(message.channel, discord.Thread):
+            # Check if this bot was @mentioned (by Emperor OR another bot)
+            if is_bot_mentioned(message, bot.user):
+                await handle_courtier_response(message, courtier_key, bot)
+        else:
+            # In main channels: Only respond to Emperor
+            if message.author.bot:
+                return
+            
             if not is_emperor(message.author):
                 return
-        
-        # Check if this bot was @mentioned
-        if is_bot_mentioned(message, bot.user):
-            await handle_courtier_response(message, courtier_key, bot)
+            
+            # Check if this bot was @mentioned
+            if is_bot_mentioned(message, bot.user):
+                await handle_courtier_response(message, courtier_key, bot)
         
         # Process commands
         await bot.process_commands(message)
