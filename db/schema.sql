@@ -46,12 +46,14 @@ create index if not exists idx_project_context_updated_at on project_context(upd
 -- Can be kept if you want to repurpose for tracking what the Court Herald has seen
 create table if not exists seen_headlines (
     id bigserial primary key,
-    headline_hash text not null unique,
-    created_at timestamptz not null default now()
+    url_hash text not null unique,
+    url text not null,
+    title text,
+    seen_at timestamptz not null default now()
 );
 
-create index if not exists idx_seen_headlines_hash on seen_headlines(headline_hash);
-create index if not exists idx_seen_headlines_created_at on seen_headlines(created_at desc);
+create index if not exists idx_seen_headlines_hash on seen_headlines(url_hash);
+create index if not exists idx_seen_headlines_created_at on seen_headlines(seen_at desc);
 
 -- drops table (used for storing published drops in news system)
 -- Can be kept for historical reference

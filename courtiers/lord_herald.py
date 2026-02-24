@@ -1,15 +1,15 @@
 """
-The Court Herald - Chief Intelligence Officer (with web search)
+Lord Herald - Chief Intelligence Officer (with web search)
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class CourtHerald(BaseCourtier):
+class LordHerald(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Court Herald",
-            title="The Court Herald",
+            name="Lord Herald",
+            title="Lord Herald of Market Intelligence",
             role="Chief Intelligence Officer"
         )
         self.specialties = [
@@ -21,3 +21,4 @@ class CourtHerald(BaseCourtier):
             "industry shifts"
         ]
         self.has_web_search = True
+        self.pronouns = "he/him"

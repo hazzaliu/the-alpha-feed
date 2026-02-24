@@ -1,15 +1,15 @@
 """
-The Royal Envoy - Marketing & Growth Strategist (with web search)
+Lady Envoy - Marketing & Growth Strategist (with web search)
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class RoyalEnvoy(BaseCourtier):
+class LadyEnvoy(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Royal Envoy",
-            title="The Royal Envoy",
+            name="Lady Envoy",
+            title="Lady Envoy of Royal Communications",
             role="Marketing & Growth Strategist"
         )
         self.specialties = [
@@ -21,3 +21,4 @@ class RoyalEnvoy(BaseCourtier):
             "growth hacking"
         ]
         self.has_web_search = True
+        self.pronouns = "she/her"

@@ -1,15 +1,15 @@
 """
-The Royal Sage - Chief Product Officer
+Lord Sage - Chief Product Officer
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class RoyalSage(BaseCourtier):
+class LordSage(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Royal Sage",
-            title="The Royal Sage",
+            name="Lord Sage",
+            title="Lord Sage of Strategic Foresight",
             role="Chief Product Officer"
         )
         self.specialties = [
@@ -20,3 +20,4 @@ class RoyalSage(BaseCourtier):
             "vision alignment",
             "long-term thinking"
         ]
+        self.pronouns = "he/him"

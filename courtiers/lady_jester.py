@@ -1,15 +1,15 @@
 """
-The Court Jester - Chief Experience Officer
+Lady Jester - Chief Experience Officer
 """
 
 from courtiers.base_courtier import BaseCourtier
 
 
-class CourtJester(BaseCourtier):
+class LadyJester(BaseCourtier):
     def __init__(self):
         super().__init__(
-            name="Court Jester",
-            title="The Court Jester",
+            name="Lady Jester",
+            title="Lady Jester of User Experience",
             role="Chief Experience Officer"
         )
         self.specialties = [
@@ -20,3 +20,4 @@ class CourtJester(BaseCourtier):
             "simplification",
             "user advocacy"
         ]
+        self.pronouns = "she/her"

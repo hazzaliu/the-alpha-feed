@@ -8,13 +8,13 @@ import discord
 from discord.ext import commands
 from typing import Optional
 
-from courtiers.grand_architect import GrandArchitect
-from courtiers.royal_treasurer import RoyalTreasurer
-from courtiers.court_herald import CourtHerald
-from courtiers.royal_envoy import RoyalEnvoy
-from courtiers.grand_vizier import GrandVizier
-from courtiers.royal_sage import RoyalSage
-from courtiers.court_jester import CourtJester
+from courtiers.lord_architect import LordArchitect
+from courtiers.lady_treasurer import LadyTreasurer
+from courtiers.lord_herald import LordHerald
+from courtiers.lady_envoy import LadyEnvoy
+from courtiers.lady_vizier import LadyVizier
+from courtiers.lord_sage import LordSage
+from courtiers.lady_jester import LadyJester
 from services.debate_engine import DebateEngine
 from services.context_manager import save_conversation, save_courtier_response
 from services.web_search import web_search, format_search_results
@@ -32,13 +32,13 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Initialize all courtiers
 courtiers = {
-    "grand_architect": GrandArchitect(),
-    "royal_treasurer": RoyalTreasurer(),
-    "court_herald": CourtHerald(),
-    "royal_envoy": RoyalEnvoy(),
-    "grand_vizier": GrandVizier(),
-    "royal_sage": RoyalSage(),
-    "court_jester": CourtJester(),
+    "lord_architect": LordArchitect(),
+    "lady_treasurer": LadyTreasurer(),
+    "lord_herald": LordHerald(),
+    "lady_envoy": LadyEnvoy(),
+    "lady_vizier": LadyVizier(),
+    "lord_sage": LordSage(),
+    "lady_jester": LadyJester(),
 }
 
 # Debate engines per channel
@@ -67,20 +67,20 @@ def detect_courtier_mention(message: discord.Message) -> Optional[str]:
     content_lower = message.content.lower()
     
     # Check for @mentions by name/title
-    if "grand architect" in content_lower or "@grand architect" in content_lower:
-        return "grand_architect"
-    elif "royal treasurer" in content_lower or "@royal treasurer" in content_lower or "treasurer" in content_lower:
-        return "royal_treasurer"
-    elif "court herald" in content_lower or "@court herald" in content_lower or "herald" in content_lower:
-        return "court_herald"
-    elif "royal envoy" in content_lower or "@royal envoy" in content_lower or "envoy" in content_lower:
-        return "royal_envoy"
-    elif "grand vizier" in content_lower or "@grand vizier" in content_lower or "vizier" in content_lower:
-        return "grand_vizier"
-    elif "royal sage" in content_lower or "@royal sage" in content_lower or "sage" in content_lower:
-        return "royal_sage"
-    elif "court jester" in content_lower or "@court jester" in content_lower or "jester" in content_lower:
-        return "court_jester"
+    if "lord architect" in content_lower or "@lord architect" in content_lower or "architect" in content_lower:
+        return "lord_architect"
+    elif "lady treasurer" in content_lower or "@lady treasurer" in content_lower or "treasurer" in content_lower:
+        return "lady_treasurer"
+    elif "lord herald" in content_lower or "@lord herald" in content_lower or "herald" in content_lower:
+        return "lord_herald"
+    elif "lady envoy" in content_lower or "@lady envoy" in content_lower or "envoy" in content_lower:
+        return "lady_envoy"
+    elif "lady vizier" in content_lower or "@lady vizier" in content_lower or "vizier" in content_lower:
+        return "lady_vizier"
+    elif "lord sage" in content_lower or "@lord sage" in content_lower or "sage" in content_lower:
+        return "lord_sage"
+    elif "lady jester" in content_lower or "@lady jester" in content_lower or "jester" in content_lower:
+        return "lady_jester"
     
     return None
 
@@ -91,8 +91,8 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str):
     
     # Extract the Emperor's actual message (remove the mention)
     emperor_message = message.content
-    for name in ["grand architect", "royal treasurer", "court herald", "royal envoy", 
-                 "grand vizier", "royal sage", "court jester"]:
+    for name in ["lord architect", "lady treasurer", "lord herald", "lady envoy", 
+                 "lady vizier", "lord sage", "lady jester"]:
         emperor_message = emperor_message.replace(f"@{name}", "").replace(name, "")
     emperor_message = emperor_message.strip()
     
@@ -104,7 +104,7 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str):
     async with message.channel.typing():
         try:
             # Special handling for courtiers with web search
-            if courtier_key in ["court_herald", "royal_envoy"] and hasattr(courtier, "has_web_search"):
+            if courtier_key in ["lord_herald", "lady_envoy"] and hasattr(courtier, "has_web_search"):
                 # Determine if we should search
                 search_triggers = ["what's", "whats", "trending", "happening", "latest", "news", 
                                  "competitor", "doing", "is ", "are ", "how are", "search"]
@@ -223,10 +223,10 @@ async def summon_command(ctx: commands.Context, *, topic: str = ""):
     
     # By default, summon key courtiers for product building
     debate_courtiers = [
-        courtiers["grand_vizier"],  # Coordinates
-        courtiers["grand_architect"],  # Technical
-        courtiers["royal_sage"],  # Strategy
-        courtiers["court_jester"],  # UX
+        courtiers["lady_vizier"],  # Coordinates
+        courtiers["lord_architect"],  # Technical
+        courtiers["lord_sage"],  # Strategy
+        courtiers["lady_jester"],  # UX
     ]
     
     debate_engine = get_debate_engine(ctx.channel)

@@ -2,17 +2,17 @@
 
 A multi-agent Discord bot system where specialized Gen Z-speaking courtiers help you build products. Each courtier is an AI agent with distinct personality and domain expertise, reporting directly to you, the Emperor.
 
-## The Royal Dynasty
+## The Royal Dynasty (4 Ladies, 3 Lords)
 
-| Courtier | Role | Specialty |
-|---|---|---|
-| **The Grand Architect** | Chief Engineer & Technical Advisor | Code review, architecture, tech stack, debugging |
-| **The Royal Treasurer** | CFO & Deal Analyzer | Pricing, costs, unit economics, fundraising |
-| **The Court Herald** | Chief Intelligence Officer | Product trends, competitor intel, market news (web search enabled) |
-| **The Royal Envoy** | Marketing & Growth Strategist | GTM, distribution, viral mechanics, growth (web search enabled) |
-| **The Grand Vizier** | Chief of Staff & Coordinator | Requirement gathering, task breakdown, coordinating courtiers |
-| **The Royal Sage** | Chief Product Officer | Product strategy, roadmap, prioritization, long-term vision |
-| **The Court Jester** | Chief Experience Officer | UX review, usability, accessibility, user advocacy |
+| Courtier | Role | Specialty | Vibe |
+|---|---|---|---|
+| **Lord Architect** (He/Him) | Chief Engineer & Technical Advisor | Code review, architecture, tech stack, debugging | 3am coder energy, "skill issue" |
+| **Lady Treasurer** (She/Her) | CFO & Deal Analyzer | Pricing, costs, unit economics, fundraising | Spreadsheet queen, That Girl |
+| **Lord Herald** (He/Him) | Chief Intelligence Officer | Product trends, competitor intel, market news (web search) | Chronically online, "I called it" |
+| **Lady Envoy** (She/Her) | Marketing & Growth Strategist | GTM, distribution, viral mechanics, growth (web search) | Content creator energy, "blow up" |
+| **Lady Vizier** (She/Her) | Chief of Staff & Coordinator | Requirement gathering, task breakdown, coordinating courtiers | Notion girlie, organized bestie |
+| **Lord Sage** (He/Him) | Chief Product Officer | Product strategy, roadmap, prioritization, long-term vision | Thinks 10 steps ahead, chess player |
+| **Lady Jester** (She/Her) | Chief Experience Officer | UX review, usability, accessibility, user advocacy | Brutally honest, "users gonna bounce" |
 
 ## Commands
 
@@ -24,10 +24,10 @@ A multi-agent Discord bot system where specialized Gen Z-speaking courtiers help
 ### Example Usage
 
 ```
-@Grand Architect should I use PostgreSQL or MongoDB?
-@Royal Treasurer is $29/month good pricing for a SaaS?
-@Court Herald what's trending in AI productivity tools?
-@Grand Vizier I want to build a landing page
+@Lord Architect should I use PostgreSQL or MongoDB?
+@Lady Treasurer is $29/month good pricing for a SaaS?
+@Lord Herald what's trending in AI productivity tools?
+@Lady Vizier I want to build a landing page
 !summon Should we add social features to our app?
 ```
 
