@@ -20,6 +20,7 @@ from courtiers.lady_genevieve import LadyGenevieve
 from services.debate_engine import DebateEngine
 from services.context_manager import save_conversation, save_courtier_response
 from services.web_search import web_search, format_search_results
+from services.phase_coordinator import get_phase_coordinator, Phase, PhaseStatus
 
 # Emperor's Discord user ID (only the Emperor can command the court)
 EMPEROR_USER_ID = os.getenv("EMPEROR_USER_ID", "")
@@ -88,10 +89,11 @@ async def handle_philippa_coordination(reply_msg: discord.Message, response: str
     """
     Detect when Lady Philippa is coordinating a task and automatically:
     1. Create a thread
-    2. @mention the assigned courtiers with their tasks
+    2. Set up phase-based coordination
+    3. @mention courtiers for Phase 1 only
     """
     # Detect coordination keywords
-    coordination_keywords = ["COURTIER ASSIGNMENTS", "TASK BREAKDOWN", "proceed", "Does this work Your Majesty"]
+    coordination_keywords = ["PHASE 1:", "PHASE 2:", "COURTIER ASSIGNMENTS", "TASK BREAKDOWN"]
     is_coordinating = any(keyword in response for keyword in coordination_keywords)
     
     if not is_coordinating:
@@ -104,27 +106,10 @@ async def handle_philippa_coordination(reply_msg: discord.Message, response: str
         # Philippa is just proposing a plan, not executing yet
         return
     
-    # Extract courtier assignments from response
-    assignments = {}
-    lines = response.split("\n")
-    in_assignments = False
+    # Parse phases from Philippa's response
+    phases = parse_phases_from_response(response)
     
-    for line in lines:
-        if "COURTIER ASSIGNMENTS" in line or "ASSIGNMENTS:" in line:
-            in_assignments = True
-            continue
-        if in_assignments:
-            if line.strip().startswith("-") or line.strip().startswith("•"):
-                # Parse assignment line: "- Lord Sebastian - [task]"
-                parts = line.strip().lstrip("-•").strip().split(" - ", 1)
-                if len(parts) == 2:
-                    courtier_name = parts[0].strip()
-                    task = parts[1].strip()
-                    assignments[courtier_name] = task
-            elif line.strip() == "" or "PLAN:" in line or "Does this work" in line:
-                break
-    
-    if not assignments:
+    if not phases:
         return
     
     # Create a thread
@@ -134,32 +119,145 @@ async def handle_philippa_coordination(reply_msg: discord.Message, response: str
             auto_archive_duration=1440  # 24 hours
         )
         
+        # Initialize phase coordinator
+        phase_coordinator = get_phase_coordinator()
+        task = phase_coordinator.create_task(
+            thread=thread,
+            task_name=original_msg.content[:100],
+            phases=phases,
+            emperor_user_id=str(original_msg.author.id)
+        )
+        
+        # Start Phase 1
+        task.current_phase.status = PhaseStatus.IN_PROGRESS
+        
         # Find bot members in the guild
         guild = reply_msg.guild
         bot_members = {member.name: member for member in guild.members if member.bot}
         
-        # @mention each assigned courtier in the thread
-        for courtier_name, task in assignments.items():
+        # Send phase overview
+        await thread.send(
+            f"📋 **PHASE-BASED COORDINATION ACTIVATED**\n\n"
+            f"Your Majesty, I've broken this into {len(phases)} phases to keep things organized:\n\n" +
+            "\n".join([f"{i+1}. {phase.name}" for i, phase in enumerate(phases)]) +
+            f"\n\nStarting with **Phase 1: {phases[0].name}** fr fr 🎯"
+        )
+        
+        # @mention courtiers for Phase 1 only
+        phase_1 = phases[0]
+        for courtier_key in phase_1.assigned_courtiers:
+            # Convert courtier_key to display name
+            courtier_display_name = courtier_key.replace("_", " ").title()
+            
             # Find the matching bot member
             bot_member = None
             for name, member in bot_members.items():
-                if courtier_name.lower() in name.lower():
+                if courtier_display_name.lower() in name.lower():
                     bot_member = member
                     break
             
             if bot_member:
-                await thread.send(f"{bot_member.mention} {task}")
-        
-        # Philippa confirms in the thread
-        philippa_bot = bot_members.get("Lady Philippa, Grand Vizier")
-        if philippa_bot:
-            await thread.send(
-                f"Your Majesty, I've summoned the court! Everyone's been assigned their tasks. "
-                f"They'll respond here and I'll synthesize everything when they're done fr fr 📋"
-            )
+                await thread.send(
+                    f"{bot_member.mention} **Phase 1 Task:** {phase_1.description}\n"
+                    f"Deliverables: {', '.join(phase_1.deliverables)}"
+                )
     
     except Exception as e:
         print(f"[Philippa Coordination] Error creating thread: {e}")
+
+
+def parse_phases_from_response(response: str) -> List[Phase]:
+    """Parse phase structure from Philippa's response."""
+    phases = []
+    lines = response.split("\n")
+    
+    current_phase = None
+    courtier_map = {
+        "sebastian": "lord_sebastian",
+        "seb": "lord_sebastian",
+        "beatrice": "lady_beatrice",
+        "bea": "lady_beatrice",
+        "edmund": "lord_edmund",
+        "eddie": "lord_edmund",
+        "arabella": "lady_arabella",
+        "bella": "lady_arabella",
+        "philippa": "lady_philippa",
+        "pippa": "lady_philippa",
+        "alistair": "lord_alistair",
+        "ali": "lord_alistair",
+        "genevieve": "lady_genevieve",
+        "genny": "lady_genevieve",
+    }
+    
+    for line in lines:
+        # Detect phase headers
+        if "PHASE 1:" in line or "Phase 1:" in line:
+            if current_phase:
+                phases.append(current_phase)
+            current_phase = Phase(
+                name=line.split(":", 1)[1].strip() if ":" in line else "Phase 1",
+                description="",
+                assigned_courtiers=[],
+                deliverables=[]
+            )
+        elif "PHASE 2:" in line or "Phase 2:" in line:
+            if current_phase:
+                phases.append(current_phase)
+            current_phase = Phase(
+                name=line.split(":", 1)[1].strip() if ":" in line else "Phase 2",
+                description="",
+                assigned_courtiers=[],
+                deliverables=[]
+            )
+        elif "PHASE 3:" in line or "Phase 3:" in line:
+            if current_phase:
+                phases.append(current_phase)
+            current_phase = Phase(
+                name=line.split(":", 1)[1].strip() if ":" in line else "Phase 3",
+                description="",
+                assigned_courtiers=[],
+                deliverables=[]
+            )
+        elif current_phase:
+            # Look for courtier names in the line
+            line_lower = line.lower()
+            for name, key in courtier_map.items():
+                if name in line_lower and key not in current_phase.assigned_courtiers:
+                    current_phase.assigned_courtiers.append(key)
+            
+            # Capture description
+            if line.strip() and not line.strip().startswith("-"):
+                current_phase.description += line.strip() + " "
+    
+    # Add last phase
+    if current_phase and current_phase.assigned_courtiers:
+        phases.append(current_phase)
+    
+    # If no phases detected, create a single phase with all courtiers
+    if not phases:
+        # Fallback: parse COURTIER ASSIGNMENTS section
+        assignments = {}
+        in_assignments = False
+        
+        for line in lines:
+            if "COURTIER ASSIGNMENTS" in line:
+                in_assignments = True
+                continue
+            if in_assignments and line.strip().startswith("-"):
+                for name, key in courtier_map.items():
+                    if name in line.lower() and key not in assignments:
+                        assignments[key] = line.strip()
+                        break
+        
+        if assignments:
+            phases.append(Phase(
+                name="Complete Task",
+                description="All courtiers work together",
+                assigned_courtiers=list(assignments.keys()),
+                deliverables=["Complete deliverable"]
+            ))
+    
+    return phases
 
 
 def detect_courtier_mention(message: discord.Message) -> Optional[str]:
@@ -221,6 +319,50 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
     except Exception as e:
         print(f"[{courtier.name}] Could not fetch history: {e}")
     
+    # Check for phase approval commands (Emperor only, in threads)
+    if is_from_emperor and isinstance(message.channel, discord.Thread):
+        approval_keywords = ["approve", "approved", "next phase", "move to next", "proceed to next"]
+        if any(keyword in clean_message.lower() for keyword in approval_keywords):
+            phase_coordinator = get_phase_coordinator()
+            task = phase_coordinator.get_task(message.channel.id)
+            if task and task.current_phase and task.current_phase.status == PhaseStatus.COMPLETED:
+                # Approve current phase and move to next
+                phase_coordinator.approve_phase(message.channel.id)
+                
+                if task.is_complete:
+                    await message.reply(
+                        f"🎉 Your Majesty, all phases are complete! "
+                        f"The task is done fr fr. Lady Philippa will present the final deliverable!"
+                    )
+                    phase_coordinator.cleanup_task(message.channel.id)
+                    return
+                else:
+                    # Start next phase
+                    next_phase = task.current_phase
+                    await message.reply(
+                        f"✅ Phase approved! Moving to **{next_phase.name}**\n\n"
+                        f"Summoning courtiers for this phase..."
+                    )
+                    
+                    # @mention courtiers for next phase
+                    guild = message.guild
+                    bot_members = {member.name: member for member in guild.members if member.bot}
+                    
+                    for courtier_key in next_phase.assigned_courtiers:
+                        courtier_display_name = courtier_key.replace("_", " ").title()
+                        bot_member = None
+                        for name, member in bot_members.items():
+                            if courtier_display_name.lower() in name.lower():
+                                bot_member = member
+                                break
+                        
+                        if bot_member:
+                            await message.channel.send(
+                                f"{bot_member.mention} **{next_phase.name} Task:** {next_phase.description}\n"
+                                f"Deliverables: {', '.join(next_phase.deliverables) if next_phase.deliverables else 'Complete your assigned work'}"
+                            )
+                    return
+    
     # Build context based on who's speaking
     context = {}
     if is_from_courtier:
@@ -233,6 +375,14 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
     # Add conversation history to context
     if conversation_history:
         context["conversation_history"] = "\n".join(conversation_history)
+    
+    # Add phase context if in a coordinated task
+    if isinstance(message.channel, discord.Thread):
+        phase_coordinator = get_phase_coordinator()
+        task = phase_coordinator.get_task(message.channel.id)
+        if task and task.current_phase:
+            context["current_phase"] = task.current_phase.name
+            context["phase_status"] = task.current_phase.status.value
     
     
     # Show typing indicator
@@ -264,6 +414,29 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
             
             # Send response (no title prefix since bot username already shows it)
             reply_msg = await message.reply(response)
+            
+            # Record response in phase coordinator (if in a thread with active task)
+            if isinstance(message.channel, discord.Thread):
+                phase_coordinator = get_phase_coordinator()
+                phase_coordinator.record_response(message.channel.id, courtier_key, response)
+                
+                # Check if phase is complete
+                if phase_coordinator.is_phase_complete(message.channel.id):
+                    # Notify Philippa to synthesize
+                    task = phase_coordinator.get_task(message.channel.id)
+                    if task and task.current_phase:
+                        # Find Philippa bot
+                        philippa_bot = None
+                        for member in message.guild.members:
+                            if member.bot and "philippa" in member.name.lower():
+                                philippa_bot = member
+                                break
+                        
+                        if philippa_bot:
+                            await message.channel.send(
+                                f"{philippa_bot.mention} all courtiers in **{task.current_phase.name}** "
+                                f"have responded! Please synthesize their work fr fr 📋"
+                            )
             
             # Special handling for Lady Philippa's coordination
             if courtier_key == "lady_philippa" and is_from_emperor:
@@ -317,11 +490,20 @@ def create_bot_for_courtier(courtier_key: str) -> commands.Bot:
         if message.author == bot.user:
             return
         
-        # In threads: Allow bots to talk to each other
+        # In threads: Check phase-based coordination
         if isinstance(message.channel, discord.Thread):
             # Check if this bot was @mentioned (by Emperor OR another bot)
             if is_bot_mentioned(message, bot.user):
-                await handle_courtier_response(message, courtier_key, bot)
+                # Check if courtier is allowed to respond in current phase
+                phase_coordinator = get_phase_coordinator()
+                if phase_coordinator.is_courtier_allowed_to_respond(message.channel.id, courtier_key):
+                    await handle_courtier_response(message, courtier_key, bot)
+                else:
+                    # Courtier not in current phase
+                    await message.reply(
+                        f"Your Majesty, I'm not assigned to this phase rn! "
+                        f"Lady Philippa will summon me when it's my turn fr fr 👀"
+                    )
         else:
             # In main channels: Only respond to Emperor
             if message.author.bot:
