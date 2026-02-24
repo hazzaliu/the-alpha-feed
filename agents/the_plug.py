@@ -125,16 +125,29 @@ def run() -> list[dict]:
     Marks returned headlines as seen in Supabase.
     Returns a list of headline dicts ready for That Girl.
     """
-    print("[The Plug] Fetching news...")
-    all_headlines = _fetch_newsapi() + _fetch_rss()
-    unique = _deduplicate(all_headlines)
-    ranked = _rank(unique)
+    try:
+        print("[The Plug] Fetching news...")
+        all_headlines = _fetch_newsapi() + _fetch_rss()
+        
+        if not all_headlines:
+            print(f"[The Plug] No headlines found from any source (NewsAPI returned {len(_fetch_newsapi())} items, RSS returned {len(_fetch_rss())} items)")
+            return []
+        
+        print(f"[The Plug] Fetched {len(all_headlines)} total headlines")
+        unique = _deduplicate(all_headlines)
+        print(f"[The Plug] {len(unique)} unique headlines after dedup")
+        ranked = _rank(unique)
 
-    for h in ranked:
-        try:
-            mark_headline_seen(h["url"], h["title"])
-        except Exception as e:
-            print(f"[The Plug] Failed to mark headline seen: {e}")
+        for h in ranked:
+            try:
+                mark_headline_seen(h["url"], h["title"])
+            except Exception as e:
+                print(f"[The Plug] Failed to mark headline seen: {e}")
 
-    print(f"[The Plug] Returning {len(ranked)} fresh headlines.")
-    return ranked
+        print(f"[The Plug] Returning {len(ranked)} fresh headlines.")
+        return ranked
+    except Exception as e:
+        import traceback
+        print(f"[The Plug] FATAL ERROR: {e}")
+        print(traceback.format_exc())
+        raise
