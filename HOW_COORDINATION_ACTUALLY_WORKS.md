@@ -50,17 +50,19 @@ Your Majesty, please create a thread and @mention each courtier with their quest
 
 Thread name: "Task: Financial Tracker"
 
-**Then in the thread, you @mention each courtier:**
+**Then in the thread, you @mention each courtier with their FULL NAME AND TITLE:**
 
 ```
-@Lord Alistair What trading strategy should this support? Day trading, swing trading, or long-term? What are the key requirements?
+@Lord Alistair, Royal Sage What trading strategy should this support? Day trading, swing trading, or long-term? What are the key requirements?
 
-@Lord Sebastian What's the technical architecture? What APIs for stock data? How do we store trades? What's the tech stack?
+@Lord Sebastian, Grand Architect What's the technical architecture? What APIs for stock data? How do we store trades? What's the tech stack?
 
-@Lady Genevieve How should the UI work? What screens do we need? How do traders input and view their trades?
+@Lady Genevieve, Court Jester How should the UI work? What screens do we need? How do traders input and view their trades?
 
-@Lady Beatrice What's the cost of stock data APIs? What's the budget for this? Which data provider should we use?
+@Lady Beatrice, Royal Treasurer What's the cost of stock data APIs? What's the budget for this? Which data provider should we use?
 ```
+
+**IMPORTANT:** You MUST use their full Discord username including the title (e.g., `@Lord Sebastian, Grand Architect` not just `@Lord Sebastian`)
 
 ### Step 4: Courtiers Respond
 
@@ -190,16 +192,16 @@ Always create a **thread** for coordinated tasks:
 **Right now, do this:**
 
 1. Create a thread from Philippa's message
-2. In the thread, @mention each courtier:
+2. In the thread, @mention each courtier with their FULL NAME AND TITLE:
 
 ```
-@Lord Alistair What trading strategy should this support? Day trading, swing trading, or long-term? What are the key requirements?
+@Lord Alistair, Royal Sage What trading strategy should this support? Day trading, swing trading, or long-term? What are the key requirements?
 
-@Lord Sebastian What's the technical architecture? What APIs for stock data? How do we store trades?
+@Lord Sebastian, Grand Architect What's the technical architecture? What APIs for stock data? How do we store trades?
 
-@Lady Genevieve How should the UI work? What screens do we need?
+@Lady Genevieve, Court Jester How should the UI work? What screens do we need?
 
-@Lady Beatrice What's the cost of stock data APIs? Which provider should we use?
+@Lady Beatrice, Royal Treasurer What's the cost of stock data APIs? Which provider should we use?
 ```
 
 3. Watch them respond and discuss
