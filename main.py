@@ -84,6 +84,84 @@ def is_bot_mentioned(message: discord.Message, bot_user: discord.User) -> bool:
     return False
 
 
+async def handle_philippa_coordination(reply_msg: discord.Message, response: str, original_msg: discord.Message):
+    """
+    Detect when Lady Philippa is coordinating a task and automatically:
+    1. Create a thread
+    2. @mention the assigned courtiers with their tasks
+    """
+    # Detect coordination keywords
+    coordination_keywords = ["COURTIER ASSIGNMENTS", "TASK BREAKDOWN", "proceed", "Does this work Your Majesty"]
+    is_coordinating = any(keyword in response for keyword in coordination_keywords)
+    
+    if not is_coordinating:
+        return
+    
+    # Check if user said "proceed" in the original message
+    user_approved = "proceed" in original_msg.content.lower()
+    
+    if not user_approved:
+        # Philippa is just proposing a plan, not executing yet
+        return
+    
+    # Extract courtier assignments from response
+    assignments = {}
+    lines = response.split("\n")
+    in_assignments = False
+    
+    for line in lines:
+        if "COURTIER ASSIGNMENTS" in line or "ASSIGNMENTS:" in line:
+            in_assignments = True
+            continue
+        if in_assignments:
+            if line.strip().startswith("-") or line.strip().startswith("•"):
+                # Parse assignment line: "- Lord Sebastian - [task]"
+                parts = line.strip().lstrip("-•").strip().split(" - ", 1)
+                if len(parts) == 2:
+                    courtier_name = parts[0].strip()
+                    task = parts[1].strip()
+                    assignments[courtier_name] = task
+            elif line.strip() == "" or "PLAN:" in line or "Does this work" in line:
+                break
+    
+    if not assignments:
+        return
+    
+    # Create a thread
+    try:
+        thread = await reply_msg.create_thread(
+            name=f"Task: {original_msg.content[:50]}...",
+            auto_archive_duration=1440  # 24 hours
+        )
+        
+        # Find bot members in the guild
+        guild = reply_msg.guild
+        bot_members = {member.name: member for member in guild.members if member.bot}
+        
+        # @mention each assigned courtier in the thread
+        for courtier_name, task in assignments.items():
+            # Find the matching bot member
+            bot_member = None
+            for name, member in bot_members.items():
+                if courtier_name.lower() in name.lower():
+                    bot_member = member
+                    break
+            
+            if bot_member:
+                await thread.send(f"{bot_member.mention} {task}")
+        
+        # Philippa confirms in the thread
+        philippa_bot = bot_members.get("Lady Philippa, Grand Vizier")
+        if philippa_bot:
+            await thread.send(
+                f"Your Majesty, I've summoned the court! Everyone's been assigned their tasks. "
+                f"They'll respond here and I'll synthesize everything when they're done fr fr 📋"
+            )
+    
+    except Exception as e:
+        print(f"[Philippa Coordination] Error creating thread: {e}")
+
+
 def detect_courtier_mention(message: discord.Message) -> Optional[str]:
     """
     Detect which courtier was mentioned in the message.
@@ -156,6 +234,7 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
     if conversation_history:
         context["conversation_history"] = "\n".join(conversation_history)
     
+    
     # Show typing indicator
     async with message.channel.typing():
         try:
@@ -184,7 +263,11 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str, 
                 response = await courtier.respond(clean_message, context)
             
             # Send response (no title prefix since bot username already shows it)
-            await message.reply(response)
+            reply_msg = await message.reply(response)
+            
+            # Special handling for Lady Philippa's coordination
+            if courtier_key == "lady_philippa" and is_from_emperor:
+                await handle_philippa_coordination(reply_msg, response, message)
             
             # Save to database
             try:
