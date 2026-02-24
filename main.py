@@ -1,12 +1,14 @@
 """
 The Emperor's Court — entry point.
-Routes @mentions to courtiers, coordinates debates, serves His Imperial Majesty.
+Runs 7 separate Discord bots simultaneously, one for each courtier.
+Each bot responds to @mentions and participates in debates.
 """
 
 import os
+import asyncio
 import discord
 from discord.ext import commands
-from typing import Optional
+from typing import Optional, Dict
 
 from courtiers.lord_sebastian import LordSebastian
 from courtiers.lady_beatrice import LadyBeatrice
@@ -19,16 +21,17 @@ from services.debate_engine import DebateEngine
 from services.context_manager import save_conversation, save_courtier_response
 from services.web_search import web_search, format_search_results
 
-from config import DISCORD_TOKEN
-
 # Emperor's Discord user ID (only the Emperor can command the court)
 EMPEROR_USER_ID = os.getenv("EMPEROR_USER_ID", "")
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.members = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
+# Bot tokens for each courtier
+LORD_SEBASTIAN_TOKEN = os.getenv("LORD_SEBASTIAN_TOKEN", "")
+LADY_BEATRICE_TOKEN = os.getenv("LADY_BEATRICE_TOKEN", "")
+LORD_EDMUND_TOKEN = os.getenv("LORD_EDMUND_TOKEN", "")
+LADY_ARABELLA_TOKEN = os.getenv("LADY_ARABELLA_TOKEN", "")
+LADY_PHILIPPA_TOKEN = os.getenv("LADY_PHILIPPA_TOKEN", "")
+LORD_ALISTAIR_TOKEN = os.getenv("LORD_ALISTAIR_TOKEN", "")
+LADY_GENEVIEVE_TOKEN = os.getenv("LADY_GENEVIEVE_TOKEN", "")
 
 # Initialize all courtiers with their British royal names
 courtiers = {
@@ -41,7 +44,21 @@ courtiers = {
     "lady_genevieve": LadyGenevieve(),
 }
 
-# Debate engines per channel
+# Map courtier keys to their tokens
+courtier_tokens = {
+    "lord_sebastian": LORD_SEBASTIAN_TOKEN,
+    "lady_beatrice": LADY_BEATRICE_TOKEN,
+    "lord_edmund": LORD_EDMUND_TOKEN,
+    "lady_arabella": LADY_ARABELLA_TOKEN,
+    "lady_philippa": LADY_PHILIPPA_TOKEN,
+    "lord_alistair": LORD_ALISTAIR_TOKEN,
+    "lady_genevieve": LADY_GENEVIEVE_TOKEN,
+}
+
+# Store bot instances
+bots: Dict[str, commands.Bot] = {}
+
+# Debate engines per channel (shared across all bots)
 debate_engines = {}
 
 
@@ -57,6 +74,14 @@ def is_emperor(user: discord.User) -> bool:
     if not EMPEROR_USER_ID:
         return True  # If not configured, allow anyone (for testing)
     return str(user.id) == EMPEROR_USER_ID
+
+
+def is_bot_mentioned(message: discord.Message, bot_user: discord.User) -> bool:
+    """Check if this specific bot was @mentioned in the message."""
+    # Check if bot was directly @mentioned
+    if bot_user in message.mentions:
+        return True
+    return False
 
 
 def detect_courtier_mention(message: discord.Message) -> Optional[str]:
@@ -86,17 +111,15 @@ def detect_courtier_mention(message: discord.Message) -> Optional[str]:
     return None
 
 
-async def handle_courtier_response(message: discord.Message, courtier_key: str):
+async def handle_courtier_response(message: discord.Message, courtier_key: str, bot_instance: commands.Bot):
     """Handle a courtier responding to the Emperor's message."""
     courtier = courtiers[courtier_key]
     
-    # Extract the Emperor's actual message (remove the mention)
+    # Extract the Emperor's actual message (remove @mentions)
     emperor_message = message.content
-    for name in ["sebastian", "seb", "beatrice", "bea", "edmund", "eddie", 
-                 "arabella", "bella", "philippa", "pippa", "alistair", "ali", 
-                 "genevieve", "genny", "architect", "treasurer", "herald", "envoy", 
-                 "vizier", "sage", "jester", "lord", "lady"]:
-        emperor_message = emperor_message.replace(f"@{name}", "").replace(name, "")
+    # Remove all @mentions from the message
+    for mention in message.mentions:
+        emperor_message = emperor_message.replace(f"<@{mention.id}>", "")
     emperor_message = emperor_message.strip()
     
     if not emperor_message:
@@ -132,8 +155,8 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str):
             else:
                 response = await courtier.respond(emperor_message)
             
-            # Send response with courtier title
-            await message.reply(f"**{courtier.title}**: {response}")
+            # Send response (no title prefix since bot username already shows it)
+            await message.reply(response)
             
             # Save to database
             try:
@@ -147,114 +170,114 @@ async def handle_courtier_response(message: discord.Message, courtier_key: str):
                     response_text=response
                 )
             except Exception as db_error:
-                print(f"[main] Database save error: {db_error}")
+                print(f"[{courtier.name}] Database save error: {db_error}")
         
         except Exception as e:
             await message.reply(
-                f"💀 **{courtier.title}**: bestie something's cooked on my end\n"
+                f"💀 bestie something's cooked on my end\n"
                 f"```{str(e)[:200]}```\n"
-                f"*gonna need the Grand Architect to debug this fr fr*"
+                f"*gonna need Lord Sebastian to debug this fr fr*"
             )
-            print(f"[main] Courtier error ({courtier_key}): {e}")
+            print(f"[{courtier.name}] Error: {e}")
 
 
-@bot.event
-async def on_ready():
-    print(f"[main] The Emperor's Court is assembled. Serving {bot.user}")
-    print(f"[main] Courtiers ready: {', '.join([c.name for c in courtiers.values()])}")
-    if EMPEROR_USER_ID:
-        print(f"[main] Serving Emperor ID: {EMPEROR_USER_ID}")
-    else:
-        print("[main] WARNING: EMPEROR_USER_ID not set. All users can command the court.")
+def create_bot_for_courtier(courtier_key: str) -> commands.Bot:
+    """Create a Discord bot instance for a specific courtier."""
+    intents = discord.Intents.default()
+    intents.message_content = True
+    intents.members = True
+    
+    bot = commands.Bot(command_prefix="!", intents=intents)
+    courtier = courtiers[courtier_key]
+    
+    @bot.event
+    async def on_ready():
+        print(f"[{courtier.name}] Online and ready to serve His Imperial Majesty")
+        if EMPEROR_USER_ID:
+            print(f"[{courtier.name}] Serving Emperor ID: {EMPEROR_USER_ID}")
+    
+    @bot.event
+    async def on_message(message: discord.Message):
+        """Listen for @mentions of this courtier."""
+        # Ignore own messages
+        if message.author == bot.user:
+            return
+        
+        # Ignore other bots
+        if message.author.bot:
+            return
+        
+        # Check if Emperor (in main channels)
+        if not isinstance(message.channel, discord.Thread):
+            if not is_emperor(message.author):
+                return
+        
+        # Check if this bot was @mentioned
+        if is_bot_mentioned(message, bot.user):
+            await handle_courtier_response(message, courtier_key, bot)
+        
+        # Process commands
+        await bot.process_commands(message)
+    
+    @bot.command(name="court")
+    async def court_command(ctx: commands.Context):
+        """!court — list all courtiers."""
+        if not is_emperor(ctx.author):
+            return
+        
+        court_list = "👑 **THE EMPEROR'S COURT** 👑\n\n"
+        court_list += "Your Majesty, here are your courtiers:\n\n"
+        
+        for c in courtiers.values():
+            pronoun_emoji = "👨" if c.pronouns == "he/him" else "👩"
+            court_list += f"{pronoun_emoji} **{c.title}**\n"
+            court_list += f"   └─ {c.role}\n"
+            if hasattr(c, 'nickname'):
+                court_list += f"   └─ Nickname: {c.nickname}\n"
+            court_list += "\n"
+        
+        court_list += "*To speak with a courtier, @mention them in your message*\n"
+        court_list += "Example: `@Lord Sebastian help me with this code`"
+        
+        await ctx.send(court_list)
+    
+    @bot.command(name="status")
+    async def status_command(ctx: commands.Context):
+        """!status — check if this courtier is online."""
+        await ctx.send(
+            f"✅ **{courtier.title}** reporting for duty, Your Majesty! 🙇\n\n"
+            f"*I'm ready to assist with {courtier.role.lower()}*\n"
+            f"Mention me anytime you need help!"
+        )
+    
+    return bot
 
 
-@bot.event
-async def on_message(message: discord.Message):
-    """Listen for @mentions of courtiers."""
-    # Ignore bot's own messages
-    if message.author == bot.user:
-        return
+async def run_all_bots():
+    """Run all 7 courtier bots simultaneously."""
+    tasks = []
     
-    # Check if Emperor
-    if not is_emperor(message.author):
-        # Only respond to non-Emperor in threads (debate mode)
-        if isinstance(message.channel, discord.Thread):
-            pass  # Allow in threads for debates
-        else:
-            return  # Ignore non-Emperor in main channels
+    for courtier_key, token in courtier_tokens.items():
+        if not token:
+            print(f"[ERROR] Missing token for {courtier_key}")
+            continue
+        
+        bot_instance = create_bot_for_courtier(courtier_key)
+        bots[courtier_key] = bot_instance
+        
+        # Create task to run this bot
+        task = asyncio.create_task(bot_instance.start(token))
+        tasks.append(task)
     
-    # Detect courtier mention
-    courtier_key = detect_courtier_mention(message)
+    print(f"[main] Starting {len(tasks)} courtier bots...")
+    print(f"[main] The Emperor's Court is assembling...")
     
-    if courtier_key:
-        # Single courtier mentioned
-        await handle_courtier_response(message, courtier_key)
-    
-    # Process commands
-    await bot.process_commands(message)
-
-
-@bot.command(name="court")
-async def court_command(ctx: commands.Context):
-    """!court — list all courtiers and their roles."""
-    if not is_emperor(ctx.author):
-        return
-    
-    court_list = "👑 **THE EMPEROR'S COURT** 👑\n\n"
-    court_list += "Your Majesty, here are your courtiers:\n\n"
-    
-    for courtier in courtiers.values():
-        court_list += f"**{courtier.title}**\n"
-        court_list += f"└─ {courtier.role}\n"
-        court_list += f"└─ Mention: `@{courtier.name}`\n\n"
-    
-    court_list += "\n*To summon a courtier, mention them in your message*\n"
-    court_list += "Example: `@Grand Architect help me with this code`"
-    
-    await ctx.send(court_list)
-
-
-@bot.command(name="summon")
-async def summon_command(ctx: commands.Context, *, topic: str = ""):
-    """!summon [topic] — Start a court debate with multiple courtiers."""
-    if not is_emperor(ctx.author):
-        return
-    
-    if not topic:
-        await ctx.send("Your Majesty, what shall the court discuss? Usage: `!summon [topic]`")
-        return
-    
-    # By default, summon key courtiers for product building
-    debate_courtiers = [
-        courtiers["lady_philippa"],  # Coordinates
-        courtiers["lord_sebastian"],  # Technical
-        courtiers["lord_alistair"],  # Strategy
-        courtiers["lady_genevieve"],  # UX
-    ]
-    
-    debate_engine = get_debate_engine(ctx.channel)
-    thread = await debate_engine.start_debate(
-        initial_message=ctx.message,
-        courtiers=debate_courtiers,
-        topic=topic
-    )
-    
-    await ctx.send(f"👥 The court has been summoned to debate: **{topic}**\n"
-                   f"The discussion continues in {thread.mention}")
-
-
-@bot.command(name="status")
-async def status_command(ctx: commands.Context):
-    """!status — check if the court is assembled."""
-    await ctx.send(
-        "✅ **The Emperor's Court is assembled** 👑\n\n"
-        f"**Active Courtiers**: {len(courtiers)}\n"
-        f"**Use `!court`** to see all courtiers\n"
-        f"**Use `@[Courtier Name]`** to speak with a courtier\n"
-        f"**Use `!summon [topic]`** to start a court debate\n\n"
-        "*Your loyal court awaits your command, Your Majesty* 🙇"
-    )
+    # Run all bots concurrently
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
-    bot.run(DISCORD_TOKEN)
+    try:
+        asyncio.run(run_all_bots())
+    except KeyboardInterrupt:
+        print("[main] The Emperor's Court has been dismissed.")

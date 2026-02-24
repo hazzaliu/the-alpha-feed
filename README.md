@@ -1,6 +1,6 @@
 # The Emperor's Court 👑
 
-A multi-agent Discord bot system where specialized Gen Z-speaking courtiers help you build products. Each courtier is an AI agent with distinct personality and domain expertise, reporting directly to you, the Emperor.
+A multi-agent Discord bot system where **7 separate bots** — specialized Gen Z-speaking courtiers — help you build products. Each courtier is an individual Discord bot with distinct personality and domain expertise, reporting directly to you, the Emperor.
 
 ## The Royal Dynasty (4 Ladies, 3 Lords)
 
@@ -52,15 +52,27 @@ Or use their nicknames:
 2. Go to **SQL Editor** and run the schema from [`db/schema.sql`](db/schema.sql)
 3. This creates tables for conversations, courtier responses, and project context
 
-### Step 2 — Discord Bot Setup
+### Step 2 — Discord Bot Setup (7 Bots)
 
+You need to create **7 separate Discord bot applications**, one for each courtier.
+
+**See [`CREATE_7_BOTS_GUIDE.md`](CREATE_7_BOTS_GUIDE.md) for detailed step-by-step instructions.**
+
+Quick summary:
 1. Go to [discord.com/developers/applications](https://discord.com/developers/applications)
-2. Select your application → Bot
-3. Enable these **Privileged Gateway Intents**:
-   - ✅ Message Content Intent
-   - ✅ Server Members Intent
-4. Copy your bot token
-5. **Get your Discord User ID** (to become the Emperor):
+2. Create 7 applications with these exact names:
+   - Lord Sebastian, Grand Architect
+   - Lady Beatrice, Treasurer of the Imperial Coffers
+   - Lord Edmund, Court Herald
+   - Lady Arabella, Royal Envoy
+   - Lady Philippa, Grand Vizier
+   - Lord Alistair, Royal Sage
+   - Lady Genevieve, Court Jester
+3. For each bot:
+   - Enable **Message Content Intent**, **Server Members Intent**, **Presence Intent**
+   - Copy the bot token
+   - Invite to your Discord server with Administrator permissions
+4. **Get your Discord User ID** (to become the Emperor):
    - Enable Developer Mode in Discord (Settings → Advanced → Developer Mode)
    - Right-click your username → Copy User ID
 
@@ -97,35 +109,50 @@ git push -u origin main
 
 | Variable | Value | Required? |
 |---|---|---|
-| `DISCORD_TOKEN` | Your Discord bot token | ✅ Required |
+| `LORD_SEBASTIAN_TOKEN` | Lord Sebastian's bot token | ✅ Required |
+| `LADY_BEATRICE_TOKEN` | Lady Beatrice's bot token | ✅ Required |
+| `LORD_EDMUND_TOKEN` | Lord Edmund's bot token | ✅ Required |
+| `LADY_ARABELLA_TOKEN` | Lady Arabella's bot token | ✅ Required |
+| `LADY_PHILIPPA_TOKEN` | Lady Philippa's bot token | ✅ Required |
+| `LORD_ALISTAIR_TOKEN` | Lord Alistair's bot token | ✅ Required |
+| `LADY_GENEVIEVE_TOKEN` | Lady Genevieve's bot token | ✅ Required |
 | `OPENAI_API_KEY` | Your OpenAI API key | ✅ Required |
 | `SUPABASE_URL` | `https://your-project-id.supabase.co` | ✅ Required |
-| `SUPABASE_KEY` | Your Supabase secret key (not anon key) | ✅ Required |
-| `EMPEROR_USER_ID` | Your Discord user ID | ✅ Required (or bot responds to everyone) |
-| `TAVILY_API_KEY` | Your Tavily API key | Optional (enables web search) |
+| `SUPABASE_KEY` | Your Supabase secret key | ✅ Required |
+| `EMPEROR_USER_ID` | Your Discord user ID | ✅ Required |
+| `TAVILY_API_KEY` | Your Tavily API key | Optional (web search) |
 
-5. Click **Deploy** — Railway will build and run the bot entirely on their servers
+5. Click **Deploy** — Railway will build and run all 7 bots simultaneously on their servers
 
 ### Step 6 — Verify
 
-In your Discord server:
-1. Type `!status` — the bot should confirm the court is assembled
-2. Type `!court` — see all 7 courtiers
-3. Try `@Grand Architect hello` — the Grand Architect should respond in Gen Z voice
+In your Discord server, you should see **7 bots online**:
+1. Type `!court` — any courtier can list all 7
+2. Type `@Lord Sebastian hello` — Lord Sebastian will respond
+3. Type `@Lady Beatrice what's up?` — Lady Beatrice will respond
+4. Each bot responds only when @mentioned!
 
 ---
 
 ## Architecture
 
 ```
-Emperor (You)
+Emperor (You) in Discord
     ↓
-@mentions specific courtier
+@mentions specific courtier bot
+    ↓
+That bot receives the message
     ↓
 Courtier responds (using OpenAI with personality prompt)
     ↓
 Response saved to Supabase
 ```
+
+**Key Features:**
+- **7 separate Discord bots** running simultaneously in one process
+- Each bot has its own Discord identity and @mention
+- Bots only respond when directly @mentioned
+- All bots share the same database and can participate in debates together
 
 ### Debate Mode
 
